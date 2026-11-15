@@ -15,10 +15,11 @@ from hydrogram.types import Message
 
 logging.basicConfig(level=logging.INFO)
 
-API_ID = int(os.environ.get("API_ID", 0))
-API_HASH = os.environ.get("API_HASH", "")
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
-SESSION_STRING = os.environ.get("SESSION_STRING", "")
+# --- APNI ACTUAL CREDENTIALS ---
+API_ID = 38215355
+API_HASH = "3f095c170be8c744b8f3d7f9c75ae544"
+BOT_TOKEN = "9234222273:AAHT_nHU23Ap9yqV-XfQub8NMOrAulpO4H8"
+SESSION_STRING = "BQJHHrsAtmi69RLiphgguRlECmuFJAsIfDxoiltrkrZT7uT_ZccNEZOAePGTfKEw_6yHU2u7d3MYRcReebPbIS7T7D0IWYtGgUq1Gi1alZoNzL4_1i30indYto0sQ-__BDUmW4qLU3haeNkjpKfQW-gPgH5-tfKD8risTrLHAFgE1ltnF2bes97l1mGUDB9UW2ryyw_s_GBHqnSm9A49uWs7Y6SwKCyHpDcynL1YT88vLyzVE-5BYToHdN_-Po32r0UuZtMiPTEekq2LlvfDK5eK1slAS7v-jERieqNTptyOnj8DRKj4qqNj_1PpRT-LdCasnLVwz5RScQ6KXu_50TFTLmCNKwAAAAH8T9FUAA"
 
 app = Client(
     "zyphorkagex_bot",
