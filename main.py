@@ -21,10 +21,11 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 SESSION_STRING = os.environ.get("SESSION_STRING", "")
 
 app = Client(
-    "zk_dubbing_bot",
+    "zyphorkagex_bot",
     api_id=API_ID,
     api_hash=API_HASH,
-    bot_token=BOT_TOKEN
+    bot_token=BOT_TOKEN,
+    session_string=SESSION_STRING if SESSION_STRING else None
 )
 
 SOURCE_TO_TARGET = {}
@@ -33,7 +34,7 @@ CURRENT_TRACKING_EPISODES = {}
 
 # --- Fake Web Server for Render Free Web Service Port Binding ---
 async def handle_ping(request):
-    return web.Response(text="ZK Dubbing Bot is active and running!")
+    return web.Response(text="ZyphorKagex Bot is active and running!")
 
 async def start_web_server():
     web_app = web.Application()
@@ -49,7 +50,7 @@ async def start_web_server():
 @app.on_message(filters.command("start") & filters.private)
 async def start_command(client: Client, message: Message):
     await message.reply(
-        "👋 **Welcome to ZyphorKagex Anime Bot!**\n\n"
+        "👋 **Welcome to ZyphorKagex Automation Bot!**\n\n"
         "Main aapke source channels se content automatically utha kar target channel par custom banners aur captions ke sath bhejta hoon.\n\n"
         "📌 **Available Commands & Information:**\n\n"
         "1️⃣ `/link <Source_ID> <Target_ID>`\n"
@@ -61,7 +62,8 @@ async def start_command(client: Client, message: Message):
         "4️⃣ `/setbanner <Target_ID>`\n"
         "   • *Info:* Target channel ke liye banner sticker set karne ke liye (Kripya sticker/photo par reply karke yeh command dein).\n\n"
         "5️⃣ `/fetch <Source_ID> <Limit>`\n"
-        "   • *Info:* Source channel se purane episodes scan karke target par bhejne ke liye."
+        "   • *Info:* Source channel se purane episodes scan karke target par bhejne ke liye.\n\n"
+        "⌬ **Powered By:** @zyphorkagex"
     )
 
 # 1. Poster Caption Auto-Parser
@@ -265,7 +267,7 @@ async def fetch_old_episodes(client: Client, message: Message):
                 
                 if msg.photo:
                     custom_caption, _, _ = format_poster_caption(orig_caption)
-                    await message.copy(chat_id=target_channel, caption=custom_caption)
+                    await msg.copy(chat_id=target_channel, caption=custom_caption)
                 elif msg.video or msg.document:
                     custom_caption, _, ep_num, season = format_episode_caption(orig_caption)
                     
@@ -285,9 +287,12 @@ async def fetch_old_episodes(client: Client, message: Message):
 
 async def main():
     await start_web_server()
-    async with app:
-        print("ZK Multi-Studio Dubbing Bot started successfully...")
-        await asyncio.Event().wait()
+    await app.start()
+    print("ZyphorKagex Bot started successfully and listening...")
+    await asyncio.Event().wait()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("Bot stopped!")
