@@ -46,6 +46,25 @@ async def start_web_server():
     await site.start()
     logging.info(f"Web server started on port {port}")
 
+# --- START COMMAND ---
+@app.on_message(filters.command("start") & filters.private)
+async def start_command(client: Client, message: Message):
+    await message.reply(
+        "👋 **Welcome to ZyphorKagex Anime Bot!**\n\n"
+        "Main aapke source channels se content automatically utha kar target channel par custom banners aur captions ke sath bhejta hoon.\n\n"
+        "📌 **Available Commands & Information:**\n\n"
+        "1️⃣ `/link <Source_ID> <Target_ID>`\n"
+        "   • *Info:* Kisi source channel ko target channel ke sath jodne ke liye.\n\n"
+        "2️⃣ `/unlink <Source_ID>`\n"
+        "   • *Info:* Jude hue source channel ka link hatane ke liye.\n\n"
+        "3️⃣ `/listlinks`\n"
+        "   • *Info:* Sabhi active source aur target channel ke links dekhne ke liye.\n\n"
+        "4️⃣ `/setbanner <Target_ID>`\n"
+        "   • *Info:* Target channel ke liye banner sticker set karne ke liye (Kripya sticker/photo par reply karke yeh command dein).\n\n"
+        "5️⃣ `/fetch <Source_ID> <Limit>`\n"
+        "   • *Info:* Source channel se purane episodes scan karke target par bhejne ke liye."
+    )
+
 # 1. Poster Caption Auto-Parser
 def format_poster_caption(orig_caption):
     lines = [line.strip() for line in orig_caption.split('\n') if line.strip()]
