@@ -24,8 +24,7 @@ app = Client(
     "zk_dubbing_bot",
     api_id=API_ID,
     api_hash=API_HASH,
-    bot_token=BOT_TOKEN,
-    session_string=SESSION_STRING if SESSION_STRING else None
+    bot_token=BOT_TOKEN
 )
 
 SOURCE_TO_TARGET = {}
