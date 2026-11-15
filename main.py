@@ -2,8 +2,8 @@ import os
 import re
 import logging
 import asyncio
-from pyrogram import Client, filters
-from pyrogram.types import Message
+from hydrogram import Client, filters
+from hydrogram.types import Message
 
 logging.basicConfig(level=logging.INFO)
 
@@ -61,7 +61,7 @@ def format_episode_caption(orig_caption):
     season = season_match.group(1) if season_match else "1"
     
     qual_match = re.search(r'(360p|480p|720p|1080p|4k)', orig_caption, re.IGNORECASE)
-    quality = qual_match.group(1) if qual_match else "720p"
+    quality = qual_match.group(1) if quality else "720p"
     
     if re.search(r'fandub', orig_caption, re.IGNORECASE):
         audio_tag = "#FanDub"
@@ -162,7 +162,7 @@ async def send_banner_sticker(client, target_channel, season, ep_num):
             try:
                 await client.send_cached_media(chat_id=target_channel, file_id=banner_id)
             except:
-                await client.send_message(chat_id=target_channel, text=f"<b>⬇️  SEASON {season} • EPISODE {ep_num}  ⬇️</b>")
+                await client.send_message(target_channel, text=f"<b>⬇️  SEASON {season} • EPISODE {ep_num}  ⬇️</b>")
         else:
             await client.send_message(target_channel, text=f"<b>⬇️  SEASON {season} • EPISODE {ep_num}  ⬇️</b>")
     except Exception as e:
