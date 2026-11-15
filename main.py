@@ -21,13 +21,8 @@ app = Client(
 )
 
 # --- DATABASE / MAPPINGS ---
-# Yahan store hoga: { source_channel_id: target_channel_id }
 SOURCE_TO_TARGET = {}
-
-# Yahan store hoga: { target_channel_id: banner_file_id }
 TARGET_BANNERS = {}
-
-# Episode tracking har target/source ke liye: { source_channel_id: last_episode_number }
 CURRENT_TRACKING_EPISODES = {}
 
 # 1. Poster Caption Auto-Parser
@@ -89,10 +84,6 @@ def format_episode_caption(orig_caption):
 
 @app.on_message(filters.command("link") & filters.private)
 async def link_channels(client: Client, message: Message):
-    """
-    Use format: /link <source_channel_id> <target_channel_id>
-    Example: /link -100111111111 -100222222222
-    """
     global SOURCE_TO_TARGET
     args = message.command
     if len(args) < 3:
@@ -138,9 +129,6 @@ async def list_links(client: Client, message: Message):
 
 @app.on_message(filters.command("setbanner") & filters.private)
 async def set_banner(client: Client, message: Message):
-    """
-    Use format by replying to a sticker/photo: /setbanner <Target_Channel_ID>
-    """
     global TARGET_BANNERS
     args = message.command
     if len(args) < 2:
@@ -176,13 +164,13 @@ async def send_banner_sticker(client, target_channel, season, ep_num):
             except:
                 await client.send_message(chat_id=target_channel, text=f"<b>⬇️  SEASON {season} • EPISODE {ep_num}  ⬇️</b>")
         else:
-            await client.send_message(chat_id=target_channel, text=f"<b>⬇️  SEASON {season} • EPISODE {ep_num}  ⬇️</b>")
+            await client.send_message(target_channel, text=f"<b>⬇️  SEASON {season} • EPISODE {ep_num}  ⬇️</b>")
     except Exception as e:
         print(f"Error sending banner: {e}")
 
 # --- AUTO FORWARD HANDLER ---
 
-@app.on_message(filters.chat(lambda _: list(SOURCE_TO_TARGET.keys())) & (filters.photo | filters.video | filters.document))
+@app.on_message(filters.chat(lambda _, msg: msg.chat.id in SOURCE_TO_TARGET) & (filters.photo | filters.video | filters.document))
 async def auto_forward_anime(client: Client, message: Message):
     global CURRENT_TRACKING_EPISODES
     try:
@@ -201,7 +189,6 @@ async def auto_forward_anime(client: Client, message: Message):
         elif message.video or message.document:
             custom_caption, anime_name, ep_num, season = format_episode_caption(orig_caption)
             
-            # Tracking key for this specific source-target pair
             track_key = f"{src_chat}_{target_channel}"
             last_ep = CURRENT_TRACKING_EPISODES.get(track_key)
             
@@ -221,10 +208,6 @@ async def auto_forward_anime(client: Client, message: Message):
 
 @app.on_message(filters.command("fetch") & filters.private)
 async def fetch_old_episodes(client: Client, message: Message):
-    """
-    Format: /fetch <Source_Channel_ID> <Limit>
-    (Yeh automatically connected target channel par bhej dega)
-    """
     args = message.command
     if len(args) < 2:
         await message.reply("❌ Sahi format use karein:\n`/fetch <Source_Channel_ID> <Limit>`")
@@ -258,7 +241,7 @@ async def fetch_old_episodes(client: Client, message: Message):
                         await asyncio.sleep(1)
                     
                     last_ep = ep_num
-                    await msg.copy(chat_id=target_channel, caption=target_channel and custom_caption or custom_caption)
+                    await msg.copy(chat_id=target_channel, caption=custom_caption)
                 
                 count += 1
                 await asyncio.sleep(3)
@@ -267,6 +250,10 @@ async def fetch_old_episodes(client: Client, message: Message):
     except Exception as e:
         await message.reply(f"❌ Error: `{e}`")
 
+async def main():
+    async with app:
+        print("ZK Multi-Studio Dubbing Bot started successfully...")
+        await asyncio.Event().wait()
+
 if __name__ == "__main__":
-    print("ZK Multi-Studio Dubbing Bot started successfully...")
-    app.run()
+    asyncio.run(main())
