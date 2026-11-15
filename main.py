@@ -2,6 +2,7 @@ import os
 import re
 import logging
 import asyncio
+from aiohttp import web
 
 # Python 3.14 event loop fix for global client initialization
 try:
@@ -27,10 +28,23 @@ app = Client(
     session_string=SESSION_STRING if SESSION_STRING else None
 )
 
-# --- DATABASE / MAPPINGS ---
 SOURCE_TO_TARGET = {}
 TARGET_BANNERS = {}
 CURRENT_TRACKING_EPISODES = {}
+
+# --- Fake Web Server for Render Free Web Service Port Binding ---
+async def handle_ping(request):
+    return web.Response(text="ZK Dubbing Bot is active and running!")
+
+async def start_web_server():
+    web_app = web.Application()
+    web_app.add_routes([web.get('/', handle_ping)])
+    runner = web.AppRunner(web_app)
+    await runner.setup()
+    port = int(os.environ.get("PORT", 10000))
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+    logging.info(f"Web server started on port {port}")
 
 # 1. Poster Caption Auto-Parser
 def format_poster_caption(orig_caption):
@@ -94,7 +108,7 @@ async def link_channels(client: Client, message: Message):
     global SOURCE_TO_TARGET
     args = message.command
     if len(args) < 3:
-        await message.reply("❌ Sahi format use karein:\n`/link <Source_ID> <Target_ID>`\n\nJaise: `/link -100source -100target`")
+        await message.reply("❌ Sahi format use karein:\n`/link <Source_ID> <Target_ID>`")
         return
     try:
         src = int(args[1])
@@ -132,14 +146,12 @@ async def list_links(client: Client, message: Message):
         text += f"• Source: `{src}`\n  ➡️ Target: `{tgt}`\n\n"
     await message.reply(text)
 
-# --- BANNER COMMAND PER TARGET ---
-
 @app.on_message(filters.command("setbanner") & filters.private)
 async def set_banner(client: Client, message: Message):
     global TARGET_BANNERS
     args = message.command
     if len(args) < 2:
-        await message.reply("❌ Sahi format:\nKisi sticker/photo par reply karke likhein:\n`/setbanner <Target_Channel_ID>`")
+        await message.reply("❌ Sahi format:\n`/setbanner <Target_Channel_ID>` (Media par reply karein)")
         return
     
     try:
@@ -175,8 +187,6 @@ async def send_banner_sticker(client, target_channel, season, ep_num):
     except Exception as e:
         print(f"Error sending banner: {e}")
 
-# --- AUTO FORWARD HANDLER ---
-
 @app.on_message(filters.chat(lambda _, msg: msg.chat.id in SOURCE_TO_TARGET) & (filters.photo | filters.video | filters.document))
 async def auto_forward_anime(client: Client, message: Message):
     global CURRENT_TRACKING_EPISODES
@@ -211,8 +221,6 @@ async def auto_forward_anime(client: Client, message: Message):
     except Exception as e:
         print(f"Error in live message: {e}")
 
-# --- FETCH COMMAND PER LINK ---
-
 @app.on_message(filters.command("fetch") & filters.private)
 async def fetch_old_episodes(client: Client, message: Message):
     args = message.command
@@ -239,7 +247,7 @@ async def fetch_old_episodes(client: Client, message: Message):
                 
                 if msg.photo:
                     custom_caption, _, _ = format_poster_caption(orig_caption)
-                    await msg.copy(chat_id=target_channel, caption=custom_caption)
+                    await message.copy(chat_id=target_channel, caption=custom_caption)
                 elif msg.video or msg.document:
                     custom_caption, _, ep_num, season = format_episode_caption(orig_caption)
                     
@@ -248,7 +256,7 @@ async def fetch_old_episodes(client: Client, message: Message):
                         await asyncio.sleep(1)
                     
                     last_ep = ep_num
-                    await msg.copy(chat_id=target_channel, caption=custom_caption)
+                    await message.copy(chat_id=target_channel, caption=custom_caption)
                 
                 count += 1
                 await asyncio.sleep(3)
@@ -258,6 +266,7 @@ async def fetch_old_episodes(client: Client, message: Message):
         await message.reply(f"❌ Error: `{e}`")
 
 async def main():
+    await start_web_server()
     async with app:
         print("ZK Multi-Studio Dubbing Bot started successfully...")
         await asyncio.Event().wait()
