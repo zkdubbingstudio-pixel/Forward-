@@ -2,6 +2,13 @@ import os
 import re
 import logging
 import asyncio
+
+# Python 3.14 event loop fix for global client initialization
+try:
+    asyncio.get_event_loop()
+except RuntimeError:
+    asyncio.set_event_loop(asyncio.new_event_loop())
+
 from hydrogram import Client, filters
 from hydrogram.types import Message
 
@@ -61,7 +68,7 @@ def format_episode_caption(orig_caption):
     season = season_match.group(1) if season_match else "1"
     
     qual_match = re.search(r'(360p|480p|720p|1080p|4k)', orig_caption, re.IGNORECASE)
-    quality = qual_match.group(1) if quality else "720p"
+    quality = qual_match.group(1) if qual_match else "720p"
     
     if re.search(r'fandub', orig_caption, re.IGNORECASE):
         audio_tag = "#FanDub"
